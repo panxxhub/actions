@@ -13,6 +13,8 @@ async function run(): Promise<void> {
 
     process.chdir(workspace)
     exec('git branch | grep -v "main" | xargs git branch -D')
+    // sync remote
+    exec('git push origin main')
 
     for (const dir of dirs) {
       // if the directory contains a package.xml file

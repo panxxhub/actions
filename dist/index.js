@@ -43,6 +43,8 @@ async function run() {
         const dirs = fs.readdirSync(path.join(workspace, 'src'));
         process.chdir(workspace);
         (0, child_process_1.exec)('git branch | grep -v "main" | xargs git branch -D');
+        // sync remote
+        (0, child_process_1.exec)('git push origin main');
         for (const dir of dirs) {
             // if the directory contains a package.xml file
             const pkg_xml_path = path.join(workspace, 'src', dir, 'package.xml');
