@@ -62,13 +62,13 @@ async function run() {
                 // copy git files to the directory
                 const pkg_dir_git = path.join(pkg_dir, '.git');
                 fse.copySync(path.join(workspace, '.git'), pkg_dir_git);
+                (0, child_process_1.exec)(`git checkout -b ${branch}`);
                 // copy all files in dir to the directory
                 const pkg_src_dir = path.join(workspace, 'src', dir);
                 core.debug(`package source directory: ${pkg_src_dir}`);
                 fse.copySync(pkg_src_dir, pkg_dir);
                 process.chdir(pkg_dir);
                 // create a new branch
-                (0, child_process_1.exec)(`git checkout -b ${branch}`);
                 // commit the changes
                 (0, child_process_1.exec)(`git add . && git commit -m "${pkg_name} to ${distro}"`);
                 // push the changes to the remote, if no remote exists, create one

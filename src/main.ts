@@ -46,6 +46,7 @@ async function run(): Promise<void> {
         const pkg_dir_git: string = path.join(pkg_dir, '.git')
         fse.copySync(path.join(workspace, '.git'), pkg_dir_git)
 
+        exec(`git checkout -b ${branch}`)
         // copy all files in dir to the directory
         const pkg_src_dir: string = path.join(workspace, 'src', dir)
         core.debug(`package source directory: ${pkg_src_dir}`)
@@ -54,8 +55,6 @@ async function run(): Promise<void> {
         process.chdir(pkg_dir)
 
         // create a new branch
-        exec(`git checkout -b ${branch}`)
-
         // commit the changes
         exec(`git add . && git commit -m "${pkg_name} to ${distro}"`)
         // push the changes to the remote, if no remote exists, create one
