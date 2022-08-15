@@ -37,16 +37,14 @@ const path = __importStar(__nccwpck_require__(1017));
 const fse = __importStar(__nccwpck_require__(5630));
 async function run() {
     try {
-        // const distro: string = core.getInput('distro') ?? 'humble'
-        const distro = 'humble';
-        const github_path = process.env.GITHUB_PATH ?? '';
+        const distro = core.getInput('distro') ?? 'humble';
         const workspace = process.env.GITHUB_WORKSPACE ?? '';
         // iterate over all directories in the workspace/src
         const dirs = fs.readdirSync(path.join(workspace, 'src'));
         for (const dir of dirs) {
             // if the directory contains a package.xml file
             const pkg_xml_path = path.join(workspace, 'src', dir, 'package.xml');
-            core.debug(`Processing ${dir}, ${pkg_xml_path}`);
+            core.debug(`Processing ${dir}, package.xml full path: ${pkg_xml_path}`);
             if (fs.existsSync(pkg_xml_path)) {
                 const pkg_name = dir;
                 core.debug(`Found package.xml for ${pkg_name}`);
@@ -55,12 +53,15 @@ async function run() {
                 core.debug(`branch name: ${branch}`);
                 // create a directory for the package(/tmp/${branch}), and copy the files in dir to the directory
                 const pkg_dir = path.join('/tmp', branch);
+                core.debug(`package directory: ${pkg_dir}`);
                 fs.mkdirSync(pkg_dir, { recursive: true });
                 // copy git files to the directory
                 const pkg_dir_git = path.join(pkg_dir, '.git');
                 fse.copySync(path.join(workspace, '.git'), pkg_dir_git);
                 // copy all files in dir to the directory
-                fse.copySync(path.join(workspace, 'src', dir), pkg_dir);
+                const pkg_src_dir = path.join(workspace, 'src', dir);
+                core.debug(`package source directory: ${pkg_src_dir}`);
+                fse.copySync(pkg_src_dir, pkg_dir);
                 process.chdir(pkg_dir);
                 // create a new branch
                 (0, child_process_1.exec)(`git checkout -b ${branch}`);
@@ -70,7 +71,6 @@ async function run() {
                 (0, child_process_1.exec)(`git push -u origin ${branch}`);
             }
         }
-        core.debug(`GITHUB_PATH: ${github_path}`);
     }
     catch (error) {
         if (error instanceof Error)

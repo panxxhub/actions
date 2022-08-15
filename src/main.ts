@@ -6,10 +6,7 @@ import * as fse from 'fs-extra'
 
 async function run(): Promise<void> {
   try {
-    // const distro: string = core.getInput('distro') ?? 'humble'
-    const distro = 'humble'
-
-    const github_path: string = process.env.GITHUB_PATH ?? ''
+    const distro: string = core.getInput('distro') ?? 'humble'
     const workspace: string = process.env.GITHUB_WORKSPACE ?? ''
     // iterate over all directories in the workspace/src
     const dirs: string[] = fs.readdirSync(path.join(workspace, 'src'))
@@ -23,7 +20,7 @@ async function run(): Promise<void> {
         'package.xml'
       )
 
-      core.debug(`Processing ${dir}, ${pkg_xml_path}`)
+      core.debug(`Processing ${dir}, package.xml full path: ${pkg_xml_path}`)
 
       if (fs.existsSync(pkg_xml_path)) {
         const pkg_name: string = dir
@@ -35,6 +32,7 @@ async function run(): Promise<void> {
 
         // create a directory for the package(/tmp/${branch}), and copy the files in dir to the directory
         const pkg_dir: string = path.join('/tmp', branch)
+        core.debug(`package directory: ${pkg_dir}`)
         fs.mkdirSync(pkg_dir, {recursive: true})
 
         // copy git files to the directory
@@ -42,7 +40,9 @@ async function run(): Promise<void> {
         fse.copySync(path.join(workspace, '.git'), pkg_dir_git)
 
         // copy all files in dir to the directory
-        fse.copySync(path.join(workspace, 'src', dir), pkg_dir)
+        const pkg_src_dir: string = path.join(workspace, 'src', dir)
+        core.debug(`package source directory: ${pkg_src_dir}`)
+        fse.copySync(pkg_src_dir, pkg_dir)
 
         process.chdir(pkg_dir)
 
@@ -55,8 +55,6 @@ async function run(): Promise<void> {
         exec(`git push -u origin ${branch}`)
       }
     }
-
-    core.debug(`GITHUB_PATH: ${github_path}`)
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }
