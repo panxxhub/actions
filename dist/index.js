@@ -41,6 +41,8 @@ async function run() {
         const workspace = process.env.GITHUB_WORKSPACE ?? '';
         // iterate over all directories in the workspace/src
         const dirs = fs.readdirSync(path.join(workspace, 'src'));
+        process.chdir(workspace);
+        (0, child_process_1.exec)('git branch | grep -v "main" | xargs git branch -D');
         for (const dir of dirs) {
             // if the directory contains a package.xml file
             const pkg_xml_path = path.join(workspace, 'src', dir, 'package.xml');
