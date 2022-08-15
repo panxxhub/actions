@@ -65,7 +65,7 @@ async function run() {
                 // commit the changes
                 (0, child_process_1.exec)(`git add . && git commit -m "${pkg_name} to ${distro}"`);
                 // push the changes to the remote, if no remote exists, create one
-                // exec(`git push -u origin ${branch}`)
+                (0, child_process_1.exec)(`git push -u origin ${branch}`);
             }
         }
         core.debug(`GITHUB_PATH: ${github_path}`);
