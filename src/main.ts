@@ -44,13 +44,13 @@ async function run(): Promise<void> {
         const pkg_dir_git: string = path.join(pkg_dir, '.git')
         fse.copySync(path.join(workspace, '.git'), pkg_dir_git)
 
+        process.chdir(pkg_dir)
         exec(`git checkout -b ${branch}`)
+
         // copy all files in dir to the directory
         const pkg_src_dir: string = path.join(workspace, 'src', dir)
         core.debug(`package source directory: ${pkg_src_dir}`)
         fse.copySync(pkg_src_dir, pkg_dir)
-
-        process.chdir(pkg_dir)
 
         // create a new branch
         // commit the changes
