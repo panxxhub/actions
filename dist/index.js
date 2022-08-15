@@ -37,7 +37,8 @@ const path = __importStar(__nccwpck_require__(1017));
 const fse = __importStar(__nccwpck_require__(5630));
 async function run() {
     try {
-        const distro = core.getInput('distro');
+        // const distro: string = core.getInput('distro') ?? 'humble'
+        const distro = 'humble';
         const github_path = process.env.GITHUB_PATH ?? '';
         const workspace = process.env.GITHUB_WORKSPACE ?? '';
         // iterate over all directories in the workspace/src
@@ -46,20 +47,25 @@ async function run() {
             // if the directory contains a package.xml file
             if (fs.existsSync(path.join(workspace, 'src', dir, 'package.xml'))) {
                 const pkg_name = dir;
+                core.debug(`Found package.xml for ${pkg_name}`);
                 // create a branch called ros2/humble
                 const branch = `ros2/${distro}/${pkg_name}`;
+                core.debug(`branch name: ${branch}`);
                 // create a directory for the package(/tmp/${branch}), and copy the files in dir to the directory
-                const pkg_dir = path.join('tmp', branch);
-                fs.mkdirSync(pkg_dir);
+                const pkg_dir = path.join('/tmp', branch);
+                fs.mkdirSync(pkg_dir, { recursive: true });
                 // copy git files to the directory
-                fse.copySync(path.join(workspace, '.git'), pkg_dir);
+                const pkg_dir_git = path.join(pkg_dir, '.git');
+                fse.copySync(path.join(workspace, '.git'), pkg_dir_git);
+                // copy all files in dir to the directory
+                fse.copySync(path.join(workspace, 'src', dir), pkg_dir);
+                process.chdir(pkg_dir);
                 // create a new branch
                 (0, child_process_1.exec)(`git checkout -b ${branch}`);
-                fse.copySync(path.join(workspace, 'src', dir), pkg_dir);
                 // commit the changes
-                (0, child_process_1.exec)(`git add . && git commit -m "Adding ${pkg_name} to ${distro}"`);
+                (0, child_process_1.exec)(`git add . && git commit -m "${pkg_name} to ${distro}"`);
                 // push the changes to the remote, if no remote exists, create one
-                (0, child_process_1.exec)(`git push -u origin ${branch}`);
+                // exec(`git push -u origin ${branch}`)
             }
         }
         core.debug(`GITHUB_PATH: ${github_path}`);
