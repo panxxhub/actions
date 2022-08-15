@@ -45,7 +45,9 @@ async function run() {
         const dirs = fs.readdirSync(path.join(workspace, 'src'));
         for (const dir of dirs) {
             // if the directory contains a package.xml file
-            if (fs.existsSync(path.join(workspace, 'src', dir, 'package.xml'))) {
+            const pkg_xml_path = path.join(workspace, 'src', dir, 'package.xml');
+            core.debug(`Processing ${dir}, ${pkg_xml_path}`);
+            if (fs.existsSync(pkg_xml_path)) {
                 const pkg_name = dir;
                 core.debug(`Found package.xml for ${pkg_name}`);
                 // create a branch called ros2/humble
