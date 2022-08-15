@@ -5,7 +5,6 @@ async function run(): Promise<void> {
     const github_path: string = process.env.GITHUB_PATH ?? ''
 
     core.debug(`GITHUB_PATH: ${github_path}`)
-
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }
