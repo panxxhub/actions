@@ -37,40 +37,49 @@ const path = __importStar(__nccwpck_require__(1017));
 const fse = __importStar(__nccwpck_require__(5630));
 async function run() {
     try {
-        const distro = core.getInput('distro') ?? 'humble';
-        const workspace = process.env.GITHUB_WORKSPACE ?? '';
+        // const distro: string = core.getInput('distro') ?? 'humble'
+        const distro = 'humble';
+        // pwd
+        const workspace = process.env.GITHUB_WORKSPACE ?? process.cwd();
+        core.debug(`workspace: ${workspace}`);
         // iterate over all directories in the workspace/src
         const dirs = fs.readdirSync(path.join(workspace, 'src'));
         process.chdir(workspace);
-        (0, child_process_1.exec)('git branch -r | grep "origin" | grep -v "main$" | grep -v HEAD | cut -d/ -f2- | while read line; do git push origin :heads/$line; done;');
+        (0, child_process_1.exec)("git branch -r | grep 'origin' | grep -v 'main$' | grep -v HEAD | cut -d/ -f2- | while read line; do git push origin :heads/$line; done;");
         for (const dir of dirs) {
             // if the directory contains a package.xml file
-            const pkg_xml_path = path.join(workspace, 'src', dir, 'package.xml');
+            const pkg_src_dir = path.join(workspace, 'src', dir);
+            const pkg_xml_path = path.join(pkg_src_dir, 'package.xml');
             core.debug(`Processing ${dir}, package.xml full path: ${pkg_xml_path}`);
             if (fs.existsSync(pkg_xml_path)) {
                 const pkg_name = dir;
-                core.debug(`Found package.xml for ${pkg_name}`);
+                core.debug(`Found package.xml at ${pkg_xml_path}`);
                 // create a branch called ros2/humble
                 const branch = `ros2/${distro}/${pkg_name}`;
                 core.debug(`branch name: ${branch}`);
                 // create a directory for the package(/tmp/${branch}), and copy the files in dir to the directory
                 const pkg_dir = path.join('/tmp', branch);
                 core.debug(`package directory: ${pkg_dir}`);
+                // if proj_dir exists, delete it
+                if (fs.existsSync(pkg_dir)) {
+                    fse.removeSync(pkg_dir);
+                }
                 fs.mkdirSync(pkg_dir, { recursive: true });
                 // copy git files to the directory
                 const pkg_dir_git = path.join(pkg_dir, '.git');
-                fse.copySync(path.join(workspace, '.git'), pkg_dir_git);
+                const ws_git = path.join(workspace, '.git');
+                fse.copySync(ws_git, pkg_dir_git);
                 process.chdir(pkg_dir);
+                core.debug(`changed directory to ${pkg_dir}`);
                 (0, child_process_1.exec)(`git checkout -b ${branch}`);
                 // copy all files in dir to the directory
-                const pkg_src_dir = path.join(workspace, 'src', dir);
                 core.debug(`package source directory: ${pkg_src_dir}`);
                 fse.copySync(pkg_src_dir, pkg_dir);
                 // create a new branch
                 // commit the changes
                 (0, child_process_1.exec)(`git add . && git commit -m "${pkg_name} to ${distro}"`);
                 // push the changes to the remote, if no remote exists, create one
-                (0, child_process_1.exec)(`git push -u origin ${branch}`);
+                (0, child_process_1.exec)(`git push -u ${branch}`);
             }
         }
     }
