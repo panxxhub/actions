@@ -15,8 +15,6 @@ async function run(): Promise<void> {
     exec(
       'git branch -r | grep "origin" | grep -v "main$" | grep -v HEAD | cut -d/ -f2- | while read line; do git push origin :heads/$line; done;'
     )
-    // sync remote
-    exec('git push origin main')
 
     for (const dir of dirs) {
       // if the directory contains a package.xml file
