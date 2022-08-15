@@ -42,7 +42,7 @@ async function run() {
         // iterate over all directories in the workspace/src
         const dirs = fs.readdirSync(path.join(workspace, 'src'));
         process.chdir(workspace);
-        (0, child_process_1.exec)('git branch | grep -v "main" | xargs git branch -D');
+        (0, child_process_1.exec)('git branch -r | grep "origin" | grep -v "main$" | grep -v HEAD | cut -d/ -f2- | while read line; do git push origin :heads/$line; done;');
         // sync remote
         (0, child_process_1.exec)('git push origin main');
         for (const dir of dirs) {

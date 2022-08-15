@@ -12,7 +12,9 @@ async function run(): Promise<void> {
     const dirs: string[] = fs.readdirSync(path.join(workspace, 'src'))
 
     process.chdir(workspace)
-    exec('git branch | grep -v "main" | xargs git branch -D')
+    exec(
+      'git branch -r | grep "origin" | grep -v "main$" | grep -v HEAD | cut -d/ -f2- | while read line; do git push origin :heads/$line; done;'
+    )
     // sync remote
     exec('git push origin main')
 
