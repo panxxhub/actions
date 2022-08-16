@@ -9,6 +9,9 @@ inputs:
     description: 'Which distro to release'
     required: false
     default: 'humble'
+outputs:
+  file_names:
+    description: 'files archived'
 runs:
   using: 'node16'
   main: 'dist/index.js'

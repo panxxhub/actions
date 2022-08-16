@@ -46,6 +46,7 @@ async function run() {
         core.debug(`workspace: ${workspace}`);
         // iterate over all directories in the workspace/src
         const dirs = fs.readdirSync(path.join(workspace, 'src'));
+        const fileNames = ['|'];
         for (const dir of dirs) {
             // if the directory contains a package.xml file
             const pkg_src_dir = path.join(workspace, 'src', dir);
@@ -71,8 +72,13 @@ async function run() {
                 tar
                     .c({ gzip: true, cwd: pkg_src_dir }, ['.'])
                     .pipe(fs.createWriteStream(file_name));
+                fileNames.push(file_name);
             }
         }
+        // convert fileNames to \n separated string, starts with |
+        const fileNamesString = fileNames.join('\t\n');
+        core.debug(`file_names: ${fileNamesString}`);
+        core.setOutput('file_names', fileNamesString);
     }
     catch (error) {
         if (error instanceof Error)

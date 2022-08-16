@@ -16,6 +16,8 @@ async function run(): Promise<void> {
     // iterate over all directories in the workspace/src
     const dirs: string[] = fs.readdirSync(path.join(workspace, 'src'))
 
+    const fileNames: string[] = ['|']
+
     for (const dir of dirs) {
       // if the directory contains a package.xml file
 
@@ -49,8 +51,14 @@ async function run(): Promise<void> {
         tar
           .c({gzip: true, cwd: pkg_src_dir}, ['.'])
           .pipe(fs.createWriteStream(file_name))
+
+        fileNames.push(file_name)
       }
     }
+    // convert fileNames to \n separated string, starts with |
+    const fileNamesString: string = fileNames.join('\t\n')
+    core.debug(`file_names: ${fileNamesString}`)
+    core.setOutput('file_names', fileNamesString)
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }
