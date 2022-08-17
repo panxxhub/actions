@@ -1,14 +1,10 @@
-name: 'flore'
-description: 'ROS superflore'
+name: 'setup grpc'
+description: 'gRPC setup script'
 inputs:
-  pkg_names:
-    description: 'Which packages to flore'
-    required: false
-    default: ''
-  distro:
-    description: 'Which distro to release'
-    required: false
-    default: 'humble'
+  grpc-version:
+    description: 'grpc version'
+    required: true
+    default: 'v1.48.0'
 runs:
   using: 'node16'
   main: 'dist/index.js'
