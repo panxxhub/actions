@@ -25,7 +25,9 @@
   "homepage": "https://github.com/panxxhub/actions#readme",
   "dependencies": {
     "@actions/core": "^1.9.1",
+    "@actions/exec": "^1.1.1",
     "@actions/github": "^5.0.3",
+    "@actions/io": "^1.1.2",
     "fs-extra": "^10.1.0",
     "tar": "^6.1.11"
   },
