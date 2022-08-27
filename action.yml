@@ -1,10 +1,10 @@
-name: 'setup grpc'
-description: 'gRPC setup script'
+name: 'setup opencv'
+description: 'opencv setup script'
 inputs:
-  grpc-version:
-    description: 'grpc version'
+  opencv-version:
+    description: 'opencv version'
     required: true
-    default: 'v1.48.0'
+    default: '4.6.0'
 runs:
   using: 'node16'
   main: 'dist/index.js'

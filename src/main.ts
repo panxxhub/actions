@@ -3,51 +3,52 @@ import {exec} from '@actions/exec'
 import {mkdirP} from '@actions/io'
 import {join} from 'path'
 
-async function install_grpc(version: string): Promise<void> {
+async function install_opencv(version: string): Promise<void> {
   info('cloning grpc repo...')
-  await exec('git', [
-    'clone',
-    '--depth',
-    '1',
-    '--recurse-submodules',
-    '--shallow-submodules',
-    '-b',
-    version,
-    'https://github.com/grpc/grpc'
+  await exec('apt-get', ['install', 'build-essential', 'ninja-build', 'cmake'])
+  await exec('wget', [
+    '-O',
+    'opencv.zip',
+    `https://github.com/opencv/opencv/archive/${version}.zip`
   ])
-  const extPath = 'grpc'
+  await exec('wget', [
+    '-O',
+    'opencv_contrib.zip',
+    // 'https://github.com/opencv/opencv_contrib/archive/4.x.zip'
+    `https://github.com/opencv/opencv_contrib/archive/${version}.zip`
+  ])
+  // RUN unzip opencv.zip && unzip opencv_contrib.zip
+  await exec('unzip', ['opencv.zip'])
+  await exec('unzip', ['opencv_contrib.zip'])
+  const extPath = 'opencv'
   info(`Configuring in ${extPath}`)
   const buildDir = join(extPath, 'build')
   await mkdirP(buildDir)
-  await exec(
-    'cmake',
-    [
-      '-DgRPC_INSTALL=ON',
-      '-DgRPC_SSL_PROVIDER=package',
-      '-DgRPC_BUILD_TESTS=OFF',
-      '-DgRPC_BUILD_GRPC_PYTHON_PLUGIN=OFF',
-      '-DgRPC_BUILD_GRPC_CSHARP_PLUGIN=OFF',
-      '-DgRPC_BUILD_GRPC_NODE_PLUGIN=OFF',
-      '-DgRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN=OFF',
-      '-DgRPC_BUILD_GRPC_PHP_PLUGIN=OFF',
-      '-DgRPC_BUILD_GRPC_RUBY_PLUGIN=OFF',
-      '-DgRPC_BUILD_CSHARP_EXT=OFF',
-      '-DgRPC_BUILD_TESTS=OFF',
-      '-DgRPC_BUILD_CODEGEN=OFF',
-      '-DgRPC_BACKWARDS_COMPATIBILITY_MODE=ON',
-      '..'
-    ],
-    {cwd: buildDir}
-  )
+  await exec('cmake', [
+    `-S${extPath}`,
+    `-B${buildDir}`,
+    '-DOPENCV_EXTRA_MODULES_PATH=opencv_contrib',
+    '-DBUILD_DOCS:BOOL=OFF',
+    '-DBUILD_EXAMPLES:BOOL=OFF',
+    '-DBUILD_NEW_PYTHON_SUPPORT:BOOL=OFF',
+    '-DBUILD_PACKAGE:BOOL=OFF',
+    '-DBUILD_SHARED_LIBS:BOOL=ON',
+    '-DBUILD_TESTS:BOOL=OFF',
+    '-DCMAKE_BUILD_TYPE:STRING=Release',
+    '-DOPENCV_ENABLE_NONFREE:BOOL=OFF',
+    '-DWITH_FFMPEG:BOOL=OFF',
+    '-DBUILD_LIST:STRING=core,imgproc,imgcodecs,features2d,xfeatures2d',
+    '-GNinja'
+  ])
   info(`Compiling in ${buildDir}`)
-  await exec('make', ['-j'], {cwd: buildDir})
+  await exec(`cmake --build ${buildDir}`)
 
-  await exec('make install', [], {cwd: buildDir})
+  await exec('ninja install', [], {cwd: buildDir})
 }
 
 async function run(): Promise<void> {
-  const version: string = getInput('grpc-version', {required: true})
-  info(`grpc version: ${version}`)
-  install_grpc(version)
+  const version: string = getInput('opencv-version', {required: true})
+  info(`opencv version: ${version}`)
+  install_opencv(version)
 }
 run()

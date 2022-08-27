@@ -4101,46 +4101,51 @@ const core_1 = __nccwpck_require__(186);
 const exec_1 = __nccwpck_require__(514);
 const io_1 = __nccwpck_require__(436);
 const path_1 = __nccwpck_require__(17);
-async function install_grpc(version) {
+async function install_opencv(version) {
     (0, core_1.info)('cloning grpc repo...');
-    await (0, exec_1.exec)('git', [
-        'clone',
-        '--depth',
-        '1',
-        '--recurse-submodules',
-        '--shallow-submodules',
-        '-b',
-        version,
-        'https://github.com/grpc/grpc'
+    await (0, exec_1.exec)('apt-get', ['install', 'build-essential', 'ninja-build', 'cmake']);
+    await (0, exec_1.exec)('wget', [
+        '-O',
+        'opencv.zip',
+        `https://github.com/opencv/opencv/archive/${version}.zip`
     ]);
-    const extPath = 'grpc';
+    await (0, exec_1.exec)('wget', [
+        '-O',
+        'opencv_contrib.zip',
+        // 'https://github.com/opencv/opencv_contrib/archive/4.x.zip'
+        `https://github.com/opencv/opencv_contrib/archive/${version}.zip`
+    ]);
+    // RUN unzip opencv.zip && unzip opencv_contrib.zip
+    await (0, exec_1.exec)('unzip', ['opencv.zip']);
+    await (0, exec_1.exec)('unzip', ['opencv_contrib.zip']);
+    const extPath = 'opencv';
     (0, core_1.info)(`Configuring in ${extPath}`);
     const buildDir = (0, path_1.join)(extPath, 'build');
     await (0, io_1.mkdirP)(buildDir);
     await (0, exec_1.exec)('cmake', [
-        '-DgRPC_INSTALL=ON',
-        '-DgRPC_SSL_PROVIDER=package',
-        '-DgRPC_BUILD_TESTS=OFF',
-        '-DgRPC_BUILD_GRPC_PYTHON_PLUGIN=OFF',
-        '-DgRPC_BUILD_GRPC_CSHARP_PLUGIN=OFF',
-        '-DgRPC_BUILD_GRPC_NODE_PLUGIN=OFF',
-        '-DgRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN=OFF',
-        '-DgRPC_BUILD_GRPC_PHP_PLUGIN=OFF',
-        '-DgRPC_BUILD_GRPC_RUBY_PLUGIN=OFF',
-        '-DgRPC_BUILD_CSHARP_EXT=OFF',
-        '-DgRPC_BUILD_TESTS=OFF',
-        '-DgRPC_BUILD_CODEGEN=OFF',
-        '-DgRPC_BACKWARDS_COMPATIBILITY_MODE=ON',
-        '..'
-    ], { cwd: buildDir });
+        `-S${extPath}`,
+        `-B${buildDir}`,
+        '-DOPENCV_EXTRA_MODULES_PATH=opencv_contrib',
+        '-DBUILD_DOCS:BOOL=OFF',
+        '-DBUILD_EXAMPLES:BOOL=OFF',
+        '-DBUILD_NEW_PYTHON_SUPPORT:BOOL=OFF',
+        '-DBUILD_PACKAGE:BOOL=OFF',
+        '-DBUILD_SHARED_LIBS:BOOL=ON',
+        '-DBUILD_TESTS:BOOL=OFF',
+        '-DCMAKE_BUILD_TYPE:STRING=Release',
+        '-DOPENCV_ENABLE_NONFREE:BOOL=OFF',
+        '-DWITH_FFMPEG:BOOL=OFF',
+        '-DBUILD_LIST:STRING=core,imgproc,imgcodecs,features2d,xfeatures2d',
+        '-GNinja'
+    ]);
     (0, core_1.info)(`Compiling in ${buildDir}`);
-    await (0, exec_1.exec)('make', ['-j'], { cwd: buildDir });
-    await (0, exec_1.exec)('make install', [], { cwd: buildDir });
+    await (0, exec_1.exec)(`cmake --build ${buildDir}`);
+    await (0, exec_1.exec)('ninja install', [], { cwd: buildDir });
 }
 async function run() {
-    const version = (0, core_1.getInput)('grpc-version', { required: true });
-    (0, core_1.info)(`grpc version: ${version}`);
-    install_grpc(version);
+    const version = (0, core_1.getInput)('opencv-version', { required: true });
+    (0, core_1.info)(`opencv version: ${version}`);
+    install_opencv(version);
 }
 run();
 
