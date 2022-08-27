@@ -4103,7 +4103,14 @@ const io_1 = __nccwpck_require__(436);
 const path_1 = __nccwpck_require__(17);
 async function install_opencv(version) {
     (0, core_1.info)('installing build deps...');
-    await (0, exec_1.exec)('apt-get', ['install', 'build-essential', 'ninja-build', 'cmake', '-y']);
+    await (0, exec_1.exec)('sudo', [
+        'apt-get',
+        'install',
+        'build-essential',
+        'ninja-build',
+        'cmake',
+        '-y'
+    ]);
     await (0, exec_1.exec)('wget', [
         '-O',
         'opencv.zip',

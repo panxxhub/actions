@@ -5,7 +5,8 @@ import {join} from 'path'
 
 async function install_opencv(version: string): Promise<void> {
   info('installing build deps...')
-  await exec('apt-get', [
+  await exec('sudo', [
+    'apt-get',
     'install',
     'build-essential',
     'ninja-build',
