@@ -4111,6 +4111,8 @@ async function install_opencv(version) {
         'cmake',
         '-y'
     ]);
+    await (0, exec_1.exec)('mkdir', ['-p', '/tmp/opencv']);
+    await (0, exec_1.exec)('mkdir', ['-p', '/tmp/opencv_contrib']);
     await (0, exec_1.exec)('wget', [
         '-O',
         'opencv.zip',
@@ -4123,16 +4125,15 @@ async function install_opencv(version) {
         `https://github.com/opencv/opencv_contrib/archive/${version}.zip`
     ]);
     // RUN unzip opencv.zip && unzip opencv_contrib.zip
-    await (0, exec_1.exec)('unzip', ['opencv.zip']);
-    await (0, exec_1.exec)('unzip', ['opencv_contrib.zip']);
-    const extPath = 'opencv';
-    (0, core_1.info)(`Configuring in ${extPath}`);
-    const buildDir = (0, path_1.join)(extPath, 'build');
+    await (0, exec_1.exec)('unzip', ['opencv.zip', '-d', '/tmp/opencv']);
+    await (0, exec_1.exec)('unzip', ['opencv_contrib.zip', '-d', '/tmp/opencv_contrib']);
+    (0, core_1.info)(`Configuring in opencv`);
+    const buildDir = (0, path_1.join)('/tmp/opencv', 'build');
     await (0, io_1.mkdirP)(buildDir);
     await (0, exec_1.exec)('cmake', [
-        `-S${extPath}`,
-        `-B${buildDir}`,
-        '-DOPENCV_EXTRA_MODULES_PATH=opencv_contrib',
+        `-S/tmp/opencv`,
+        `-B/tmp/opencv/build`,
+        '-DOPENCV_EXTRA_MODULES_PATH=/tmp/opencv_contrib',
         '-DBUILD_DOCS:BOOL=OFF',
         '-DBUILD_EXAMPLES:BOOL=OFF',
         '-DBUILD_NEW_PYTHON_SUPPORT:BOOL=OFF',
@@ -4145,9 +4146,9 @@ async function install_opencv(version) {
         '-DBUILD_LIST:STRING=core,imgproc,imgcodecs,features2d,xfeatures2d',
         '-GNinja'
     ]);
-    (0, core_1.info)(`Compiling in ${buildDir}`);
-    await (0, exec_1.exec)(`cmake --build ${buildDir}`);
-    await (0, exec_1.exec)('ninja install', [], { cwd: buildDir });
+    (0, core_1.info)(`Compiling in /tmp/opencv/build`);
+    await (0, exec_1.exec)(`cmake --build /tmp/opencv/build --config Release`);
+    await (0, exec_1.exec)('ninja install', [], { cwd: '/tmp/opencv/build' });
 }
 async function run() {
     const version = (0, core_1.getInput)('opencv-version', { required: true });

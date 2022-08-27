@@ -13,6 +13,9 @@ async function install_opencv(version: string): Promise<void> {
     'cmake',
     '-y'
   ])
+  await exec('mkdir', ['-p', '/tmp/opencv'])
+  await exec('mkdir', ['-p', '/tmp/opencv_contrib'])
+
   await exec('wget', [
     '-O',
     'opencv.zip',
@@ -24,17 +27,17 @@ async function install_opencv(version: string): Promise<void> {
     // 'https://github.com/opencv/opencv_contrib/archive/4.x.zip'
     `https://github.com/opencv/opencv_contrib/archive/${version}.zip`
   ])
+
   // RUN unzip opencv.zip && unzip opencv_contrib.zip
-  await exec('unzip', ['opencv.zip'])
-  await exec('unzip', ['opencv_contrib.zip'])
-  const extPath = 'opencv'
-  info(`Configuring in ${extPath}`)
-  const buildDir = join(extPath, 'build')
+  await exec('unzip', ['opencv.zip', '-d', '/tmp/opencv'])
+  await exec('unzip', ['opencv_contrib.zip', '-d', '/tmp/opencv_contrib'])
+  info(`Configuring in opencv`)
+  const buildDir = join('/tmp/opencv', 'build')
   await mkdirP(buildDir)
   await exec('cmake', [
-    `-S${extPath}`,
-    `-B${buildDir}`,
-    '-DOPENCV_EXTRA_MODULES_PATH=opencv_contrib',
+    `-S/tmp/opencv`,
+    `-B/tmp/opencv/build`,
+    '-DOPENCV_EXTRA_MODULES_PATH=/tmp/opencv_contrib',
     '-DBUILD_DOCS:BOOL=OFF',
     '-DBUILD_EXAMPLES:BOOL=OFF',
     '-DBUILD_NEW_PYTHON_SUPPORT:BOOL=OFF',
@@ -47,10 +50,10 @@ async function install_opencv(version: string): Promise<void> {
     '-DBUILD_LIST:STRING=core,imgproc,imgcodecs,features2d,xfeatures2d',
     '-GNinja'
   ])
-  info(`Compiling in ${buildDir}`)
-  await exec(`cmake --build ${buildDir}`)
+  info(`Compiling in /tmp/opencv/build`)
+  await exec(`cmake --build /tmp/opencv/build --config Release`)
 
-  await exec('ninja install', [], {cwd: buildDir})
+  await exec('ninja install', [], {cwd: '/tmp/opencv/build'})
 }
 
 async function run(): Promise<void> {
