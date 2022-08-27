@@ -11,33 +11,33 @@ async function install_opencv(version: string): Promise<void> {
     'build-essential',
     'ninja-build',
     'cmake',
+    'unzip',
     '-y'
   ])
-  await exec('mkdir', ['-p', '/tmp/opencv'])
-  await exec('mkdir', ['-p', '/tmp/opencv_contrib'])
 
   await exec('wget', [
     '-O',
-    'opencv.zip',
-    `https://github.com/opencv/opencv/archive/${version}.zip`
+    '/tmp/opencv.zip',
+    `https://github.com/opencv/opencv/archive/${version}.zip`,
+    '-q'
   ])
   await exec('wget', [
     '-O',
-    'opencv_contrib.zip',
-    // 'https://github.com/opencv/opencv_contrib/archive/4.x.zip'
-    `https://github.com/opencv/opencv_contrib/archive/${version}.zip`
+    '/tmp/opencv_contrib.zip',
+    `https://github.com/opencv/opencv_contrib/archive/${version}.zip`,
+    '-q'
   ])
 
   // RUN unzip opencv.zip && unzip opencv_contrib.zip
-  await exec('unzip', ['opencv.zip', '-d', '/tmp/opencv'])
-  await exec('unzip', ['opencv_contrib.zip', '-d', '/tmp/opencv_contrib'])
+  await exec('unzip', ['/tmp/opencv.zip', '-d', '/tmp'])
+  await exec('unzip', ['/tmp/opencv_contrib.zip', '-d', '/tmp'])
   info(`Configuring in opencv`)
   const buildDir = join('/tmp/opencv', 'build')
   await mkdirP(buildDir)
   await exec('cmake', [
-    `-S/tmp/opencv`,
-    `-B/tmp/opencv/build`,
-    '-DOPENCV_EXTRA_MODULES_PATH=/tmp/opencv_contrib',
+    `-S/tmp/opencv-${version}`,
+    `-B/tmp/opencv-${version}/build`,
+    `-DOPENCV_EXTRA_MODULES_PATH=/tmp/opencv_contrib-${version}/modules`,
     '-DBUILD_DOCS:BOOL=OFF',
     '-DBUILD_EXAMPLES:BOOL=OFF',
     '-DBUILD_NEW_PYTHON_SUPPORT:BOOL=OFF',
@@ -51,14 +51,14 @@ async function install_opencv(version: string): Promise<void> {
     '-GNinja'
   ])
   info(`Compiling in /tmp/opencv/build`)
-  await exec(`cmake --build /tmp/opencv/build --config Release`)
+  await exec(`cmake --build /tmp/opencv-${version}/build --config Release`)
 
-  await exec('ninja install', [], {cwd: '/tmp/opencv/build'})
+  await exec('sudo ninja install', [], {cwd: `/tmp/opencv-${version}/build`})
 }
 
 async function run(): Promise<void> {
   const version: string = getInput('opencv-version', {required: true})
   info(`opencv version: ${version}`)
-  install_opencv(version)
+  install_opencv('4.6.0')
 }
 run()

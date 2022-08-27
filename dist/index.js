@@ -4109,31 +4109,31 @@ async function install_opencv(version) {
         'build-essential',
         'ninja-build',
         'cmake',
+        'unzip',
         '-y'
     ]);
-    await (0, exec_1.exec)('mkdir', ['-p', '/tmp/opencv']);
-    await (0, exec_1.exec)('mkdir', ['-p', '/tmp/opencv_contrib']);
     await (0, exec_1.exec)('wget', [
         '-O',
-        'opencv.zip',
-        `https://github.com/opencv/opencv/archive/${version}.zip`
+        '/tmp/opencv.zip',
+        `https://github.com/opencv/opencv/archive/${version}.zip`,
+        '-q'
     ]);
     await (0, exec_1.exec)('wget', [
         '-O',
-        'opencv_contrib.zip',
-        // 'https://github.com/opencv/opencv_contrib/archive/4.x.zip'
-        `https://github.com/opencv/opencv_contrib/archive/${version}.zip`
+        '/tmp/opencv_contrib.zip',
+        `https://github.com/opencv/opencv_contrib/archive/${version}.zip`,
+        '-q'
     ]);
     // RUN unzip opencv.zip && unzip opencv_contrib.zip
-    await (0, exec_1.exec)('unzip', ['opencv.zip', '-d', '/tmp/opencv']);
-    await (0, exec_1.exec)('unzip', ['opencv_contrib.zip', '-d', '/tmp/opencv_contrib']);
+    await (0, exec_1.exec)('unzip', ['/tmp/opencv.zip', '-d', '/tmp']);
+    await (0, exec_1.exec)('unzip', ['/tmp/opencv_contrib.zip', '-d', '/tmp']);
     (0, core_1.info)(`Configuring in opencv`);
     const buildDir = (0, path_1.join)('/tmp/opencv', 'build');
     await (0, io_1.mkdirP)(buildDir);
     await (0, exec_1.exec)('cmake', [
-        `-S/tmp/opencv`,
-        `-B/tmp/opencv/build`,
-        '-DOPENCV_EXTRA_MODULES_PATH=/tmp/opencv_contrib',
+        `-S/tmp/opencv-${version}`,
+        `-B/tmp/opencv-${version}/build`,
+        `-DOPENCV_EXTRA_MODULES_PATH=/tmp/opencv_contrib-${version}/modules`,
         '-DBUILD_DOCS:BOOL=OFF',
         '-DBUILD_EXAMPLES:BOOL=OFF',
         '-DBUILD_NEW_PYTHON_SUPPORT:BOOL=OFF',
@@ -4147,13 +4147,13 @@ async function install_opencv(version) {
         '-GNinja'
     ]);
     (0, core_1.info)(`Compiling in /tmp/opencv/build`);
-    await (0, exec_1.exec)(`cmake --build /tmp/opencv/build --config Release`);
-    await (0, exec_1.exec)('ninja install', [], { cwd: '/tmp/opencv/build' });
+    await (0, exec_1.exec)(`cmake --build /tmp/opencv-${version}/build --config Release`);
+    await (0, exec_1.exec)('sudo ninja install', [], { cwd: `/tmp/opencv-${version}/build` });
 }
 async function run() {
     const version = (0, core_1.getInput)('opencv-version', { required: true });
     (0, core_1.info)(`opencv version: ${version}`);
-    install_opencv(version);
+    install_opencv('4.6.0');
 }
 run();
 
