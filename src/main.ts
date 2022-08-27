@@ -4,8 +4,14 @@ import {mkdirP} from '@actions/io'
 import {join} from 'path'
 
 async function install_opencv(version: string): Promise<void> {
-  info('cloning grpc repo...')
-  await exec('apt-get', ['install', 'build-essential', 'ninja-build', 'cmake'])
+  info('installing build deps...')
+  await exec('apt-get', [
+    'install',
+    'build-essential',
+    'ninja-build',
+    'cmake',
+    '-y'
+  ])
   await exec('wget', [
     '-O',
     'opencv.zip',
